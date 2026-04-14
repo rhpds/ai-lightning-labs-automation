@@ -32,7 +32,7 @@ spec:
       - RespectIgnoreDifferences=true
     managedNamespaceMetadata:
       labels:
-        opendatahub.io/dashboard: true
+        opendatahub.io/dashboard: "true"
     retry:
       limit: 10
       backoff:
