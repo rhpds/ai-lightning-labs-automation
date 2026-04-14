@@ -90,39 +90,6 @@ example1InlineResource:
   namespace: example1-USERNAME   # MUST be overridden in catalog
 
 # ---------------------------------------------------------------------------
-# daamclaw — Enterprise Agent Orchestration (DAAM Claw)
-# ---------------------------------------------------------------------------
-daamclaw:
-  enabled: true
-  namespace: daamclaw-USERNAME
-  git:
-    path: tenant/daamclaw
-    <<: *eformat_defaults
-
-# ---------------------------------------------------------------------------
-# mcpOpenshift — Kubernetes MCP Server for OpenShift
-# ---------------------------------------------------------------------------
-mcpOpenshift:
-  enabled: true
-  namespace: mcp-openshift-USERNAME
-  git:
-    path: tenant/mcp-openshift
-    <<: *eformat_defaults
-  chartValues:
-    openshift: true
-    route:
-      enabled: true
-    ingress:
-      enabled: false
-    image:
-      repository: eformat/kubernetes-mcp-server
-      pullPolicy: Always
-    rbac:
-      crossNamespaceEdit:
-      - openclaw
-      - "" # empty string = base user namespace (<tenant.user.name> with no prefix, e.g. "user-x76st")
-
-# ---------------------------------------------------------------------------
 # openclaw — OpenClaw AI Agent Gateway
 # ---------------------------------------------------------------------------
 openclaw:
@@ -130,6 +97,16 @@ openclaw:
   namespace: openclaw-USERNAME
   git:
     path: tenant/openclaw
+    <<: *eformat_defaults
+
+# ---------------------------------------------------------------------------
+# demo — Demo Notebooks
+# ---------------------------------------------------------------------------
+demo:
+  enabled: true
+  namespace: demo-USERNAME
+  git:
+    path: tenant/demo
     <<: *eformat_defaults
 
 # ---------------------------------------------------------------------------
