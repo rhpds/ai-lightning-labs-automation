@@ -3,7 +3,7 @@ namespace: rhai-workshop-plugin
 image: quay.io/eformat/rhai-workshop-plugin:latest
 initImage: registry.redhat.io/openshift4/ose-cli:latest
 
-showTabs: false
+showTabs: "false"
 tutorialUrls:
   - name: Voice Agents Smart Start
     url: https://rhai-code.github.io/voice-agents
