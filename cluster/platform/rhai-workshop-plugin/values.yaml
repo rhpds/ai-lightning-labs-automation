@@ -3,16 +3,11 @@ namespace: rhai-workshop-plugin
 image: quay.io/eformat/rhai-workshop-plugin:latest
 initImage: registry.redhat.io/openshift4/ose-cli:latest
 
+showTabs: false
 tutorialUrls:
-  - name: RHAI Smart Start Navigation
-    url: https://rhai-code.github.io/rhai-nav-quickstart
-  - name: Voice Agents
-    url: https://eformat.github.io/voice-agents/voice-agents/index.html
-  - name: Rainforest
-    url: https://eformat.github.io/rainforest-docs
-  - name: Special Potato
-    url: https://eformat.github.io/special-potato
-  - name: Smart Start 1
-    url: https://soyr-redhat.github.io/demo-platform-quickstart-test
-  - name: Smart Start - OpenCode MCP
-    url: https://eformat.github.io/rhai-demo-quickstart-opencode-mcp
+  - name: Voice Agents Smart Start
+    url: https://rhai-code.github.io/voice-agents
+  - name: Factory Floor Tycoon Smart Start
+    url: https://rhai-code.github.io/factory-floor-tycoon-agentic-demo
+  - name: Word Swarm Smart Start
+    url: https://rhai-code.github.io/wordswarm
