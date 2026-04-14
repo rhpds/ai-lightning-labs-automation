@@ -32,7 +32,7 @@ default_settings: &git_defaults
   targetRevision: main
 
 eformat_settings: &eformat_defaults
-  repoURL: https://github.com/eformat/rhpds-ci-gitops-demo
+  repoURL: https://github.com/rhpds/ai-lightning-labs-automation
   targetRevision: main
 
 # ---------------------------------------------------------------------------
