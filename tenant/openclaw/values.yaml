@@ -12,7 +12,7 @@ clusterDomain: ""
 
 # -- Gateway image
 image:
-  repository: quay.io/sallyom/openclaw
+  repository: quay.io/opendatahub/odh-openclaw-rhel9
   tag: latest
   pullPolicy: Always
 
@@ -29,20 +29,13 @@ agent:
 
 # -- Model configuration
 model:
-  # -- OpenAI-compatible model endpoint URL
-  endpoint: "http://vllm.openclaw-llms.svc.cluster.local/v1"
-  # -- API protocol: "openai-responses" or "openai-completions"
-  api: "openai-responses"
-  # -- API key for the model endpoint (if required)
-  apiKey: ""
-  # -- Local model identity (must match what the endpoint serves)
-  id: "openai/gpt-oss-20b"
-  name: "GPT OSS 20B"
-  contextWindow: 32768
-  maxTokens: 8192
-  # -- Default model ID for agents (auto-derived if empty)
-  # Examples: "anthropic/claude-sonnet-4-6", "local/openai/gpt-oss-20b"
-  defaultAgentModel: ""
+  endpoint: "https://maas.apps.ocp.cloud.rhai-tmm.dev/kimi-k25/kimi-k2-5/v1"
+  api: "openai-completions"
+  id: "kimi-k2-5"
+  name: "kimi-k2-5"
+  contextWindow: 262144
+  maxTokens: 262144
+  apiKey: "fake"
 
 # -- API keys and secrets
 secrets:
