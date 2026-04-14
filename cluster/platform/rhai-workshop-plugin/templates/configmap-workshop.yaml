@@ -7,6 +7,6 @@ metadata:
   name: workshop-config
   namespace: {{ .Values.namespace }}
 data:
-  showTabs: {{ .Values.showTabs }}
+  showTabs: {{ .Values.showTabs | quote }}
   tutorialUrls: |
     {{ .Values.tutorialUrls | toJson }}
