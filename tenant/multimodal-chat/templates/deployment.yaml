@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multimodal-chatbot
+  labels:
+    app: multimodal-chatbot
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: multimodal-chatbot
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  template:
+    metadata:
+      labels:
+        app: multimodal-chatbot
+        deployment: multimodal-chatbot
+    spec:
+      containers:
+        - name: multimodal-chatbot
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          env:
+            - name: CONFIG_FILE
+              value: {{ .Values.config.configFile | quote }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: {{ .Values.config.mountPath | quote }}
+              readOnly: true
+          resources: {}
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: {{ .Values.config.secretName }}

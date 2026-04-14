@@ -1,0 +1,28 @@
+{{ if .Values.rhaiNavPlugin.enabled -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rhai-nav-plugin
+  namespace: openshift-gitops
+spec:
+  project: platform
+  source:
+    repoURL: {{ .Values.rhaiNavPlugin.git.repoURL }}
+    targetRevision: {{ .Values.rhaiNavPlugin.git.targetRevision }}
+    path: {{ .Values.rhaiNavPlugin.git.path }}
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      enabled: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+{{- end }}

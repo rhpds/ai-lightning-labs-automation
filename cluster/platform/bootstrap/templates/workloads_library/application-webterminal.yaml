@@ -1,0 +1,28 @@
+{{ if .Values.webTerminal.enabled -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: web-terminal
+  namespace: openshift-gitops
+spec:
+  project: platform
+  source:
+    repoURL: {{ .Values.webTerminal.git.repoURL }}
+    targetRevision: {{ .Values.webTerminal.git.targetRevision }}
+    path: {{ .Values.webTerminal.git.path }}
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      enabled: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+{{- end }}

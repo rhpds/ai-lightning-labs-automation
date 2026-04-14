@@ -1,0 +1,39 @@
+{{ if .Values.openclaw.enabled -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openclaw-{{ .Values.tenant.name }}
+  namespace: openshift-gitops
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: tenants
+  source:
+    repoURL: {{ .Values.openclaw.git.repoURL }}
+    targetRevision: {{ .Values.openclaw.git.targetRevision }}
+    path: {{ .Values.openclaw.git.path }}
+    helm:
+      values: |
+        deployer:
+        {{- .Values.deployer | toYaml | nindent 12 }}
+        tenant:
+        {{- .Values.tenant | toYaml | nindent 12 }}
+        openclaw:
+        {{- .Values.openclaw | toYaml | nindent 12 }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.openclaw.namespace }}
+  syncPolicy:
+    automated:
+      enabled: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+{{- end }}

@@ -1,0 +1,40 @@
+{{ if .Values.mcpOpenshift.enabled -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mcp-openshift-{{ .Values.tenant.name }}
+  namespace: openshift-gitops
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: tenants
+  source:
+    repoURL: {{ .Values.mcpOpenshift.git.repoURL }}
+    targetRevision: {{ .Values.mcpOpenshift.git.targetRevision }}
+    path: {{ .Values.mcpOpenshift.git.path }}
+    helm:
+      values: |
+        deployer:
+        {{- .Values.deployer | toYaml | nindent 12 }}
+        tenant:
+        {{- .Values.tenant | toYaml | nindent 12 }}
+        {{- if .Values.mcpOpenshift.chartValues }}
+        {{- .Values.mcpOpenshift.chartValues | toYaml | nindent 8 }}
+        {{- end }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.mcpOpenshift.namespace }}
+  syncPolicy:
+    automated:
+      enabled: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+{{- end }}

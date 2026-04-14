@@ -1,0 +1,18 @@
+operator:
+  name: web-terminal
+  namespace: openshift-operators
+  channel: fast
+  installPlanApproval: Automatic
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  # startingCSV: web-terminal.v1.13.0
+  syncwave: "-5"
+
+devworkspace:
+  idleTimeout: 8h
+  imagePullPolicy: Always
+  image: quay.io/eformat/web-terminal:latest
+  cpuLimit: 800m
+  cpuRequest: 100m
+  memoryLimit: 1024Mi
+  memoryRequest: 128Mi

@@ -1,0 +1,39 @@
+{{ if .Values.multimodalChat.enabled -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: multimodal-chat-{{ .Values.tenant.name }}
+  namespace: openshift-gitops
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: tenants
+  source:
+    repoURL: {{ .Values.multimodalChat.git.repoURL }}
+    targetRevision: {{ .Values.multimodalChat.git.targetRevision }}
+    path: {{ .Values.multimodalChat.git.path }}
+    helm:
+      values: |
+        deployer:
+        {{- .Values.deployer | toYaml | nindent 12 }}
+        tenant:
+        {{- .Values.tenant | toYaml | nindent 12 }}
+        multimodalChat:
+        {{- .Values.multimodalChat | toYaml | nindent 12 }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.multimodalChat.namespace }}
+  syncPolicy:
+    automated:
+      enabled: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+{{- end }}

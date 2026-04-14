@@ -1,0 +1,24 @@
+{{- if and .Values.rbac.create .Values.rbac.crossNamespaceEdit -}}
+{{- $fullname := include "kubernetes-mcp-server.fullname" . -}}
+{{- $saName := include "kubernetes-mcp-server.serviceAccountName" . -}}
+{{- $saNamespace := .Release.Namespace -}}
+{{- $userName := .Values.tenant.user.name -}}
+{{- range .Values.rbac.crossNamespaceEdit -}}
+{{- $prefix := . | toString -}}
+{{- $ns := ternary $userName (printf "%s-%s" $prefix $userName) (eq $prefix "") }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $fullname }}
+  namespace: {{ $ns }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+- kind: ServiceAccount
+  name: {{ $saName }}
+  namespace: {{ $saNamespace }}
+{{ end -}}
+{{- end }}

@@ -1,0 +1,51 @@
+replicaCount: 1
+
+image:
+  repository: quay.io/eformat/daam-claw
+  tag: latest
+  pullPolicy: Always
+
+serviceAccount:
+  create: true
+  name: daamclaw
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 6143
+
+route:
+  enabled: true
+  host: ""
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 2Gi
+  mountPath: /app/data
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+env:
+  DAAMCLAW_OLLAMA_URL: "http://ollama-service:11434"
+  DAAMCLAW_VLLM_URL: "http://vllm-service:8000/v1"
+
+probes:
+  liveness:
+    path: /health
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readiness:
+    path: /health
+    initialDelaySeconds: 5
+    periodSeconds: 5

@@ -1,0 +1,39 @@
+{{ if .Values.openwebui.enabled -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openwebui-{{ .Values.tenant.name }}
+  namespace: openshift-gitops
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: tenants
+  source:
+    repoURL: {{ .Values.openwebui.git.repoURL }}
+    targetRevision: {{ .Values.openwebui.git.targetRevision }}
+    path: {{ .Values.openwebui.git.path }}
+    helm:
+      values: |
+        deployer:
+        {{- .Values.deployer | toYaml | nindent 12 }}
+        tenant:
+        {{- .Values.tenant | toYaml | nindent 12 }}
+        openwebui:
+        {{- .Values.openwebui | toYaml | nindent 12 }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.openwebui.namespace }}
+  syncPolicy:
+    automated:
+      enabled: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+{{- end }}

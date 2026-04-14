@@ -1,0 +1,27 @@
+tenant:
+  name: GUID
+  user:
+    name: USERNAME
+
+replicaCount: 1
+
+image:
+  repository: quay.io/eformat/multimodal-chatbot
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 5000
+  targetPort: 5000
+
+route:
+  enabled: true
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+
+config:
+  secretName: multimodal-chatbot
+  mountPath: /opt/app-rot/src/config
+  configFile: /opt/app-rot/src/config/config.json

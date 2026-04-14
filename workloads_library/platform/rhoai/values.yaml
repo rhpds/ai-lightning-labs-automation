@@ -1,0 +1,65 @@
+# Default values for rhoai.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+dscinitialization:
+  enabled: true
+  name: default-dsci
+  # serviceMesh:
+  #   managementState: Removed
+
+datasciencecluster:
+  enabled: true
+  name: default-dsc
+  apiVersion: datasciencecluster.opendatahub.io/v2
+  components:
+    aipipelines:
+      argoWorkflowsControllers:
+        managementState: Managed
+      managementState: Managed
+    dashboard:
+      managementState: Managed
+    feastoperator:
+      managementState: Managed
+    kserve:
+      managementState: Managed
+      nim:
+        managementState: Managed
+      rawDeploymentServiceConfig: Headed
+    kueue:
+      defaultClusterQueueName: default
+      defaultLocalQueueName: default
+      managementState: Removed
+    llamastackoperator:
+      managementState: Managed
+    mlflowoperator:
+      managementState: Managed
+    modelregistry:
+      managementState: Managed
+      registriesNamespace: rhoai-model-registries
+    ray:
+      managementState: Managed
+    trainer:
+      managementState: Managed
+    trainingoperator:
+      managementState: Managed
+    trustyai:
+      eval:
+        lmeval:
+          permitCodeExecution: deny
+          permitOnline: deny
+      managementState: Managed
+    workbenches:
+      managementState: Managed
+      workbenchNamespace: rhods-notebooks
+
+patcher:
+  enabled: false
+  name: rhoai-patcher
+  namespace: redhat-ods-applications
+  syncwave: "0"
+  image: registry.redhat.io/openshift4/ose-cli
+  # route: true
+  # dashboard:
+  #   replicas: 1
+

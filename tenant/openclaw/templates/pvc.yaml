@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: openclaw-home-pvc
+  labels:
+    {{- include "openclaw.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.storage.home.storageClass }}
+  storageClassName: {{ .Values.storage.home.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.storage.home.size }}

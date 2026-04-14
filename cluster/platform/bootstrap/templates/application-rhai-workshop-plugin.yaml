@@ -1,0 +1,28 @@
+{{ if .Values.rhaiWorkshopPlugin.enabled -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rhai-workshop-plugin
+  namespace: openshift-gitops
+spec:
+  project: platform
+  source:
+    repoURL: {{ .Values.rhaiWorkshopPlugin.git.repoURL }}
+    targetRevision: {{ .Values.rhaiWorkshopPlugin.git.targetRevision }}
+    path: {{ .Values.rhaiWorkshopPlugin.git.path }}
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      enabled: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+{{- end }}

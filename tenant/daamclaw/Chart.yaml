@@ -1,0 +1,6 @@
+apiVersion: v2
+appVersion: 0.2.0
+description: Enterprise Agent Orchestration for the Red Hat Ecosystem
+name: daamclaw
+type: application
+version: 0.1.0

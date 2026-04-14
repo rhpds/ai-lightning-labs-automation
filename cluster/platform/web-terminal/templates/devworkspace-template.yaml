@@ -1,0 +1,34 @@
+apiVersion: workspace.devfile.io/v1alpha2
+kind: DevWorkspaceTemplate
+metadata:
+  name: web-terminal-tooling
+  namespace: {{ .Values.operator.namespace }}
+  labels:
+    console.openshift.io/terminal: "true"
+  annotations:
+    controller.devfile.io/allow-import-from: '*'
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  attributes:
+    controller.devfile.io/storage-type: per-workspace
+  components:
+    - container:
+        args:
+          - tail
+          - -f
+          - /dev/null
+        cpuLimit: {{ .Values.devworkspace.cpuLimit }}
+        cpuRequest: {{ .Values.devworkspace.cpuRequest }}
+        image: {{ .Values.devworkspace.image }}
+        memoryLimit: {{ .Values.devworkspace.memoryLimit }}
+        memoryRequest: {{ .Values.devworkspace.memoryRequest }}
+        mountSources: false
+        sourceMapping: /projects
+        volumeMounts:
+          - name: home-storage
+            path: /home/user
+      name: web-terminal-tooling
+    - name: home-storage
+      volume:
+        ephemeral: false

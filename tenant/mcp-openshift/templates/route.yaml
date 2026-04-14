@@ -1,0 +1,20 @@
+{{- if .Values.route.enabled -}}
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: mcp-openshift
+  namespace: {{ .namespace | default $.Release.Namespace }}
+spec:
+  to:
+    kind: Service
+    name: {{ include "kubernetes-mcp-server.fullname" . }}
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+status: {}
+{{- end }}
