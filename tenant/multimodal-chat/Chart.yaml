@@ -1,6 +1,0 @@
-apiVersion: v2
-name: multimodal-chat
-description: Multimodal Chatbot
-type: application
-version: 0.1.0
-appVersion: "latest"

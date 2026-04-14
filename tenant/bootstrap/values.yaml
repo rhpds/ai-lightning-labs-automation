@@ -32,7 +32,7 @@ default_settings: &git_defaults
   targetRevision: main
 
 eformat_settings: &eformat_defaults
-  repoURL: https://github.com/eformat/rhpds-ci-gitops-demo
+  repoURL: https://github.com/rhpds/ai-lightning-labs-automation
   targetRevision: main
 
 # ---------------------------------------------------------------------------
@@ -119,33 +119,8 @@ mcpOpenshift:
       pullPolicy: Always
     rbac:
       crossNamespaceEdit:
-      - daamclaw
-      - mcp-weather
-      - multimodal-chat
       - openclaw
-      - openwebui
-      - mcp-openshift
       - "" # empty string = base user namespace (<tenant.user.name> with no prefix, e.g. "user-x76st")
-
-# ---------------------------------------------------------------------------
-# mcpWeather — MCP Weather Server
-# ---------------------------------------------------------------------------
-mcpWeather:
-  enabled: true
-  namespace: mcp-weather-USERNAME
-  git:
-    path: tenant/mcp-weather
-    <<: *eformat_defaults
-
-# ---------------------------------------------------------------------------
-# multimodalChat — Multimodal Chatbot
-# ---------------------------------------------------------------------------
-multimodalChat:
-  enabled: true
-  namespace: multimodal-chat-USERNAME
-  git:
-    path: tenant/multimodal-chat
-    <<: *eformat_defaults
 
 # ---------------------------------------------------------------------------
 # openclaw — OpenClaw AI Agent Gateway
@@ -155,16 +130,6 @@ openclaw:
   namespace: openclaw-USERNAME
   git:
     path: tenant/openclaw
-    <<: *eformat_defaults
-
-# ---------------------------------------------------------------------------
-# openwebui — Open WebUI
-# ---------------------------------------------------------------------------
-openwebui:
-  enabled: true
-  namespace: openwebui-USERNAME
-  git:
-    path: tenant/openwebui
     <<: *eformat_defaults
 
 # ---------------------------------------------------------------------------
