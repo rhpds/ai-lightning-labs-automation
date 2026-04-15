@@ -1,0 +1,19 @@
+---
+replicas: 1
+
+image:
+  repository: quay.io/eformat/maas-tokenizer
+  tag: latest
+  pullPolicy: Always
+
+maasUrl: ""
+maasToken: "{{ .Values.maas_bearer }}"
+tokenExpiry: "24h"
+reconcileFrequency: "10m"
+
+serviceAccount:
+  create: true
+  name: ""
+
+extraTokens:
+  stt-token: "{{ .Values.stt_token }}"
