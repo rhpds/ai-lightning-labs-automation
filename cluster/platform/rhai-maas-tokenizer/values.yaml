@@ -1,4 +1,6 @@
 ---
+namespace: rhai-maas-tokenizer
+
 replicas: 1
 
 image:
