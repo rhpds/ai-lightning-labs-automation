@@ -17,5 +17,4 @@ serviceAccount:
   create: true
   name: ""
 
-extraTokens:
-  stt-token: ""
+stt-token: ""

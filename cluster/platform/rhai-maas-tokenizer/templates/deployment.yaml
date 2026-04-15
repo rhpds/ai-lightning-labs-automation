@@ -29,10 +29,9 @@ spec:
               value: {{ .Values.maasUrl | quote }}
             - name: MAAS_TOKEN
               value: {{ .Values.maasToken }}
-            {{- if .Values.extraTokens }}
+            {{- if index .Values "stt-token" }}
             - name: EXTRA_TOKENS
-              value: |
-                stt-token: {{ .Values.stt_token }}
+              value: {{ dict "stt-token" (index .Values "stt-token") | toJson | quote }}
             {{- end }}
           resources:
             requests:
