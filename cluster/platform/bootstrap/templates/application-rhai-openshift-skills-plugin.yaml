@@ -1,0 +1,28 @@
+{{ if .Values.rhaiOpenShiftSkillsPlugin.enabled -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rhai-openshift-skills-plugin
+  namespace: openshift-gitops
+spec:
+  project: platform
+  source:
+    repoURL: {{ .Values.rhaiOpenShiftSkillsPlugin.git.repoURL }}
+    targetRevision: {{ .Values.rhaiOpenShiftSkillsPlugin.git.targetRevision }}
+    path: {{ .Values.rhaiOpenShiftSkillsPlugin.git.path }}
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      enabled: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+{{- end }}

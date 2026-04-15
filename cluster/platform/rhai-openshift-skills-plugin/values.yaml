@@ -1,0 +1,79 @@
+namespace: rhai-openshift-skills-plugin
+
+replicaCount: 1
+
+image:
+  repository: quay.io/eformat/openshift-skills-plugin
+  tag: latest
+  pullPolicy: Always
+
+plugin:
+  name: openshift-skills-plugin
+  displayName: "OpenShift Skills Plugin"
+  port: 9443
+
+serviceAccount:
+  create: true
+  name: skills-plugin
+
+service:
+  type: ClusterIP
+  port: 9443
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 2Gi
+  mountPath: /app/data
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+tls:
+  enabled: true
+
+enablePlugin: true
+
+mlflow:
+  enabled: false
+  replicas: 1
+  image:
+    repository: ghcr.io/mlflow/mlflow
+    tag: v3.10.1
+    pullPolicy: Always
+  port: 5000
+  args:
+    - "mlflow"
+    - "server"
+    - "--host"
+    - "0.0.0.0"
+    - "--port"
+    - "5000"
+    - "--backend-store-uri"
+    - "sqlite:////mlflow/mlflow.db"
+    - "--default-artifact-root"
+    - "/mlflow/mlartifacts"
+    - "--disable-security-middleware"
+  persistence:
+    size: 5Gi
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 2048Mi
+  oauth:
+    enabled: true
+    image:
+      repository: quay.io/openshift/origin-oauth-proxy
+      tag: latest
+      pullPolicy: Always
+    cookieSecret: ""

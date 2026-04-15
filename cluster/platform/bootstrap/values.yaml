@@ -168,6 +168,14 @@ rhaiWorkshopPlugin:
     path: cluster/platform/rhai-workshop-plugin
     <<: *eformat_defaults
 
+# RHAI OpenShift Skills Plugin — OpenShift console plugin for scheduled agent skill execution via MaaS.
+# No infra-layer pair; deploys directly as a platform workload.
+rhaiOpenShiftSkillsPlugin:
+  enabled: true
+  git:
+    path: cluster/platform/rhai-openshift-skills-plugin
+    <<: *eformat_defaults
+
 # Web Terminal — deploys the Web Terminal operator and DevWorkspace configuration.
 # No infra-layer pair; the operator installs via this chart directly.
 webTerminal:
