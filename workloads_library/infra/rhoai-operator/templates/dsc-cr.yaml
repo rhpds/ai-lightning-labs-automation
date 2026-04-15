@@ -1,0 +1,49 @@
+---
+apiVersion: datasciencecluster.opendatahub.io/v2
+kind: DataScienceCluster
+metadata:
+  name: default-dsc
+  namespace: redhat-ods-operator
+spec:
+  components:
+    kserve:
+      managementState: Managed
+      modelsAsService:
+        managementState: Managed
+      nim:
+        managementState: Removed
+      rawDeploymentServiceConfig: Headless
+    modelregistry:
+      managementState: Managed
+      registriesNamespace: rhoai-model-registries
+    feastoperator:
+      managementState: Managed
+    trustyai:
+      eval:
+        lmeval:
+          permitCodeExecution: allow
+          permitOnline: allow
+      managementState: Managed
+    aipipelines:
+      argoWorkflowsControllers:
+        managementState: Managed
+      managementState: Managed
+    ray:
+      managementState: Managed
+    kueue:
+      defaultClusterQueueName: default
+      defaultLocalQueueName: default
+      managementState: Removed
+    workbenches:
+      managementState: Managed
+      workbenchNamespace: rhods-notebooks
+    mlflowoperator:
+      managementState: Managed
+    dashboard:
+      managementState: Managed
+    trainer:
+      managementState: Managed
+    llamastackoperator:
+      managementState: Managed
+    trainingoperator:
+      managementState: Managed
