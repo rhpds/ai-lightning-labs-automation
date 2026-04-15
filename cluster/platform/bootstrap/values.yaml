@@ -180,6 +180,8 @@ webTerminal:
 # No infra-layer pair; deploys directly as a platform workload.
 rhaiMaaSTokenizer:
   enabled: true
+  maasToken: ""
+  stt-token: ""
   git:
     path: cluster/platform/rhai-maas-tokenizer
     <<: *eformat_defaults

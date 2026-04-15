@@ -10,6 +10,10 @@ spec:
     repoURL: {{ .Values.rhaiMaaSTokenizer.git.repoURL }}
     targetRevision: {{ .Values.rhaiMaaSTokenizer.git.targetRevision }}
     path: {{ .Values.rhaiMaaSTokenizer.git.path }}
+    helm:
+      values: |
+        maasToken: {{ .Values.rhaiMaaSTokenizer.maasToken | quote }}
+        stt-token: {{ index .Values.rhaiMaaSTokenizer "stt-token" | quote }}
   destination:
     server: https://kubernetes.default.svc
   syncPolicy:
