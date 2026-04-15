@@ -28,7 +28,7 @@ spec:
             - name: MAAS_URL
               value: {{ .Values.maasUrl | quote }}
             - name: MAAS_TOKEN
-              value: {{ .Values.maas_bearer }}
+              value: {{ .Values.maasToken }}
             {{- if .Values.extraTokens }}
             - name: EXTRA_TOKENS
               value: |
