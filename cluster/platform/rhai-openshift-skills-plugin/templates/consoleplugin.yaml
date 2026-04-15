@@ -8,7 +8,7 @@ spec:
     type: Service
     service:
       name: {{ .Values.plugin.name }}
-      namespace: {{ .Release.Namespace }}
+      namespace: {{ .Values.namespace }}
       port: {{ .Values.service.port }}
       basePath: "/"
   proxy:
@@ -18,5 +18,5 @@ spec:
         type: Service
         service:
           name: {{ .Values.plugin.name }}
-          namespace: {{ .Release.Namespace }}
+          namespace: {{ .Values.namespace }}
           port: {{ .Values.service.port }}

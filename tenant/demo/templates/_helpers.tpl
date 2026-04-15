@@ -25,7 +25,7 @@ Fullname — just "demo" (matches existing resource names).
 Namespace derived from prefix.
 */}}
 {{- define "demo.namespace" -}}
-{{ .Release.Namespace }}
+{{ .Values.namespace }}
 {{- end }}
 
 {{/*

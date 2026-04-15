@@ -49,7 +49,7 @@ spec:
             {{- end }}
             {{- if .Values.mlflow.enabled }}
             - name: MLFLOW_TRACKING_URI
-              value: "http://{{ .Values.plugin.name }}-mlflow.{{ .Release.Namespace }}.svc:{{ .Values.mlflow.port }}"
+              value: "http://{{ .Values.plugin.name }}-mlflow.{{ .Values.namespace }}.svc:{{ .Values.mlflow.port }}"
             {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
