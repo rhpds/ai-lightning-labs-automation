@@ -12,8 +12,8 @@ spec:
     path: {{ .Values.rhaiMaaSTokenizer.git.path }}
     helm:
       values: |
-        maasToken: {{ .Values.rhaiMaaSTokenizer.maasToken | quote }}
-        stt-token: {{ index .Values.rhaiMaaSTokenizer "stt-token" | quote }}
+        maasToken: {{ .Values.rhaiMaaSTokenizer.maas_bearer | quote }}
+        stt-token: {{ .Values.rhaiMaaSTokenizer.stt_token | quote }}
   destination:
     server: https://kubernetes.default.svc
   syncPolicy:
