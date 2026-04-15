@@ -31,13 +31,13 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: {{ .Values.serviceAccount.name }}
-    namespace: {{ .Release.Namespace }}
+    namespace: {{ .Values.namespace }}
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ .Values.plugin.name }}-enable
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.namespace }}
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
