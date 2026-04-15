@@ -28,10 +28,11 @@ spec:
             - name: MAAS_URL
               value: {{ .Values.maasUrl | quote }}
             - name: MAAS_TOKEN
-              value: {{ .Values.maasToken | quote }}
+              value: {{ .Values.rhaiMaaSTokenizer.maas_bearer }}
             {{- if .Values.extraTokens }}
             - name: EXTRA_TOKENS
-              value: {{ .Values.extraTokens | toJson | quote }}
+              value: |
+                stt-token: {{ .Values.rhaiMaaSTokenizer.stt_token }}
             {{- end }}
           resources:
             requests:
