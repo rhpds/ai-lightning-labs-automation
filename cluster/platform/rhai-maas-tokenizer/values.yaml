@@ -9,7 +9,7 @@ image:
   pullPolicy: Always
 
 maasUrl: "https://maas.apps.ocp.cloud.rhai-tmm.dev"
-maasToken: {{ .Values.maasToken }}
+maasToken: ""
 tokenExpiry: "24h"
 reconcileFrequency: "10m"
 
@@ -18,4 +18,4 @@ serviceAccount:
   name: ""
 
 extraTokens:
-  stt-token: {{ .Values.stt_token }}
+  stt-token: ""
