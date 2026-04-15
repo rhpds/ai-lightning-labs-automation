@@ -179,7 +179,7 @@ webTerminal:
 # RHAI MaaS Tokenizer — deploys the RHAI MaaS Tokenizer.
 # No infra-layer pair; deploys directly as a platform workload.
 rhaiMaaSTokenizer:
-  enabled: true
+  enabled: false
   git:
     path: cluster/platform/rhai-maas-tokenizer
     <<: *eformat_defaults

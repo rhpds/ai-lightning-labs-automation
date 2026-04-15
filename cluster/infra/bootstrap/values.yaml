@@ -77,7 +77,7 @@ defaultStorageclass:
 #       kubevirt:
 #         enabled: true
 # ---------------------------------------------------------------------------
-platformValues: {}
+# platformValues: {}
 
 # ---------------------------------------------------------------------------
 # Keycloak automation — opt-in, not needed for most labs.
