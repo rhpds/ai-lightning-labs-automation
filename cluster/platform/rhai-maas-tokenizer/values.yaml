@@ -8,7 +8,7 @@ image:
   tag: latest
   pullPolicy: Always
 
-maasUrl: ""
+maasUrl: "https://maas.apps.ocp.cloud.rhai-tmm.dev"
 maasToken: "{{ .Values.maas_bearer }}"
 tokenExpiry: "24h"
 reconcileFrequency: "10m"
