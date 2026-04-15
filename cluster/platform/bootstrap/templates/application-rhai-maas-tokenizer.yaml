@@ -1,0 +1,28 @@
+{{ if .Values.rhaiMaaSTokenizer.enabled -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rhai-maas-tokenizer
+  namespace: openshift-gitops
+spec:
+  project: platform
+  source:
+    repoURL: {{ .Values.rhaiMaaSTokenizer.git.repoURL }}
+    targetRevision: {{ .Values.rhaiMaaSTokenizer.git.targetRevision }}
+    path: {{ .Values.rhaiMaaSTokenizer.git.path }}
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      enabled: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+{{- end }}
