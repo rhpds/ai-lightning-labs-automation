@@ -10,9 +10,6 @@ spec:
     repoURL: {{ .Values.rhaiMaaSTokenizer.git.repoURL }}
     targetRevision: {{ .Values.rhaiMaaSTokenizer.git.targetRevision }}
     path: {{ .Values.rhaiMaaSTokenizer.git.path }}
-  helm:
-    valuesFiles:
-      - values.yaml
   destination:
     server: https://kubernetes.default.svc
   syncPolicy:
