@@ -5,6 +5,8 @@ initImage: registry.redhat.io/openshift4/ose-cli:latest
 
 showTabs: "true"
 tutorialUrls:
+  - name: OpenShift AI Smart Starts
+    url: https://https://rhai-code.github.io/rhai-nav-quickstart/
   - name: Voice Agents Smart Start
     url: https://rhai-code.github.io/voice-agents
   - name: Factory Floor Tycoon Smart Start
