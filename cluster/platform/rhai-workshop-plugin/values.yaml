@@ -8,8 +8,8 @@ tutorialUrls:
   - name: OpenShift AI Smart Starts
     url: https://rhai-code.github.io/rhai-nav-quickstart
   - name: Voice Agents Smart Start
-    url: https://rhai-code.github.io/voice-agents
+    url: https://rhpds.github.io/ai-lightning-voice-agents-showroom
   - name: Factory Floor Tycoon Smart Start
-    url: https://rhai-code.github.io/factory-floor-tycoon-agentic-demo
+    url: https://rhpds.github.io/ai-lightning-fft-agentic-lab-showroom
   - name: Word Swarm Smart Start
-    url: https://rhai-code.github.io/wordswarm
+    url: https://rhpds.github.io/ai-lightning-wordswarm-showroom
