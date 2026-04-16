@@ -184,6 +184,14 @@ webTerminal:
     path: cluster/platform/web-terminal
     <<: *eformat_defaults
 
+# Image Puller — deploys the Kubernetes Image Puller operator and CR.
+# Pre-pulls container images onto all nodes via a DaemonSet.
+imagePuller:
+  enabled: true
+  git:
+    path: cluster/platform/image-puller
+    <<: *eformat_defaults
+
 # RHAI MaaS Tokenizer — deploys the RHAI MaaS Tokenizer.
 # No infra-layer pair; deploys directly as a platform workload.
 rhaiMaaSTokenizer:

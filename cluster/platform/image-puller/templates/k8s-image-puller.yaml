@@ -1,0 +1,9 @@
+---
+apiVersion: che.eclipse.org/v1alpha1
+kind: KubernetesImagePuller
+metadata:
+  name: image-puller
+  namespace: {{ .Values.namespace }}
+spec:
+  daemonsetName: k8s-image-puller
+  images: {{ .Values.images | quote }}
