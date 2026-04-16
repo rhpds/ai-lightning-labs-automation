@@ -19,5 +19,5 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: openclaw-oauth-proxy
-    namespace: {{ .Values.namespace }}
+    namespace: {{ include "openclaw.namespace" . }}
 {{- end }}
