@@ -9,7 +9,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: openclaw-oauth-proxy-tokenreview-{{ .Values.namespace }}
+  name: openclaw-oauth-proxy-tokenreview-{{ .Release.Namespace }}
   labels:
     {{- include "openclaw.labels" . | nindent 4 }}
 roleRef:

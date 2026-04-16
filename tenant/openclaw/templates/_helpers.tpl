@@ -25,7 +25,7 @@ Fullname — just "openclaw" (matches existing resource names).
 Namespace derived from prefix.
 */}}
 {{- define "openclaw.namespace" -}}
-{{ .Values.namespace }}
+{{ .Release.Namespace }}
 {{- end }}
 
 {{/*
@@ -140,7 +140,7 @@ Allowed origins for the control UI.
 */}}
 {{- define "openclaw.allowedOrigins" -}}
 {{- if and (eq .Values.mode "openshift") (or .Values.clusterDomain .Values.deployer.domain) -}}
-["https://openclaw-{{ .Values.namespace }}.{{ .Values.clusterDomain | default .Values.deployer.domain }}"]
+["https://openclaw-{{ .Release.Namespace }}.{{ .Values.clusterDomain | default .Values.deployer.domain }}"]
 {{- else -}}
 []
 {{- end }}
