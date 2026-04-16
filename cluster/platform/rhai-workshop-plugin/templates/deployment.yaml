@@ -45,11 +45,11 @@ spec:
               # Generate config.json
               echo "Discovering OpenShift AI URL from consolelink/rhodslink..."
               OPENSHIFT_AI_URL=""
-              for i in 1 2 3; do
+              for i in 1 2 3 4 5; do
                   OPENSHIFT_AI_URL=$(oc get consolelink rhodslink -o jsonpath='{.spec.href}' 2>&1) && break
                   echo "Attempt $i failed: $OPENSHIFT_AI_URL"
                   OPENSHIFT_AI_URL=""
-                  sleep 5
+                  sleep 10
               done
               if [ -z "$OPENSHIFT_AI_URL" ]; then
                   echo "WARNING: Could not discover openshiftAiUrl. Available consolelinks:"
