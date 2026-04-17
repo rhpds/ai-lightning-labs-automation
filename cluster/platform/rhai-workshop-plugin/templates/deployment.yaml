@@ -91,6 +91,14 @@ spec:
               name: generated-config
               readOnly: true
               subPath: config.json
+            - mountPath: /etc/nginx/conf.d/proxy.conf
+              name: showroom-proxy-conf
+              readOnly: true
+              subPath: proxy.conf
+            - mountPath: /usr/share/nginx/html/proxy-users.json
+              name: showroom-proxy-conf
+              readOnly: true
+              subPath: proxy-users.json
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       volumes:
@@ -108,3 +116,7 @@ spec:
             name: workshop-config
         - name: generated-config
           emptyDir: {}
+        - name: showroom-proxy-conf
+          configMap:
+            defaultMode: 420
+            name: showroom-proxy-conf

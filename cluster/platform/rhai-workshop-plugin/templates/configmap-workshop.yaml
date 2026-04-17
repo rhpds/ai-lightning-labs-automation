@@ -10,3 +10,5 @@ data:
   showTabs: {{ .Values.showTabs | quote }}
   tutorialUrls: |
     {{ .Values.tutorialUrls | toJson }}
+  showroomDefaults: |
+    {{ .Values.showroomDefaults | toJson }}
