@@ -12,10 +12,6 @@ tutorialUrls:
   - name: Word Swarm Smart Start
     url: https://rhpds.github.io/ai-lightning-wordswarm-showroom
 
-showroomWatcher:
-  image: quay.io/eformat/showroom-proxy-watcher:latest
-  reconcileFrequency: "30s"
-
 showroomDefaults:
   guid: "abc123"
   bastion_public_hostname: "bastion.example.com"

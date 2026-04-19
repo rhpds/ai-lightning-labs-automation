@@ -10,13 +10,6 @@ spec:
     repoURL: {{ .Values.rhaiWorkshopPlugin.git.repoURL }}
     targetRevision: {{ .Values.rhaiWorkshopPlugin.git.targetRevision }}
     path: {{ .Values.rhaiWorkshopPlugin.git.path }}
-  ignoreDifferences:
-    - group: ""
-      kind: ConfigMap
-      name: showroom-proxy-conf
-      namespace: rhai-workshop-plugin
-      jsonPointers:
-        - /data
   destination:
     server: https://kubernetes.default.svc
   syncPolicy:
@@ -25,7 +18,6 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - SkipDryRunOnMissingResource=true
-      - RespectIgnoreDifferences=true
     retry:
       limit: 10
       backoff:
