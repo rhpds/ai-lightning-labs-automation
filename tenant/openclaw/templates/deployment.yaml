@@ -8,6 +8,7 @@ metadata:
     {{- with .Values.podLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+    rhai-tmm.dev/reloader: "true"
   annotations:
     checksum/config: {{ include "openclaw.configHash" . | quote }}
     checksum/secret-oauth: {{ include "openclaw.oauthSecretHash" . | quote }}
