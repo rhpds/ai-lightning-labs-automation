@@ -95,7 +95,7 @@ openclaw:
     failureThreshold: 3
 
   readinessProbe:
-    enabled: true
+    enabled: false
     initialDelaySeconds: 15
     periodSeconds: 10
     timeoutSeconds: 5
