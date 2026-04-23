@@ -2,11 +2,13 @@
 Expand the name of the chart.
 */}}
 {{- define "openclaw.name" -}}
-openclaw
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
-Fullname — just "openclaw" (matches existing resource names).
+Create a default fully qualified app name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+If release name contains chart name it will be used as a full name.
 */}}
 {{- define "openclaw.fullname" -}}
 {{- if .Values.fullnameOverride }}
@@ -22,126 +24,104 @@ Fullname — just "openclaw" (matches existing resource names).
 {{- end }}
 
 {{/*
-Namespace derived from prefix.
+Create chart name and version as used by the chart label.
 */}}
-{{- define "openclaw.namespace" -}}
-{{ .Release.Namespace }}
+{{- define "openclaw.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
-Common labels.
+Common labels
 */}}
 {{- define "openclaw.labels" -}}
-app: openclaw
-app.kubernetes.io/name: openclaw
-app.kubernetes.io/instance: {{ .Release.Name }}
+helm.sh/chart: {{ include "openclaw.chart" . }}
+{{ include "openclaw.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 {{- end }}
 
 {{/*
-Selector labels.
+Selector labels
 */}}
 {{- define "openclaw.selectorLabels" -}}
-app: openclaw
+app.kubernetes.io/name: {{ include "openclaw.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Agent ID: <prefix>_<agent_name>
+Create the name of the service account to use
 */}}
-{{- define "openclaw.agentId" -}}
-{{ .Values.prefix }}_{{ .Values.agent.name }}
+{{- define "openclaw.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "openclaw.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
 {{- end }}
 
 {{/*
-Init container image — auto-select based on mode.
+Create the OpenClaw config hash for triggering pod restarts
 */}}
-{{- define "openclaw.initImage" -}}
-{{- if .Values.initImage -}}
-{{ .Values.initImage }}
-{{- else if eq .Values.mode "openshift" -}}
-registry.redhat.io/ubi9-minimal:latest
-{{- else -}}
-busybox:latest
-{{- end }}
+{{- define "openclaw.configHash" -}}
+{{- include (print .Template.BasePath "/configmap.yaml") . | sha256sum | trunc 8 }}
 {{- end }}
 
 {{/*
-Default agent model — derive from available API keys.
-*/}}
-{{- define "openclaw.defaultAgentModel" -}}
-{{- if .Values.model.defaultAgentModel -}}
-{{ .Values.model.defaultAgentModel }}
-{{- else if .Values.secrets.anthropicApiKey -}}
-anthropic/claude-sonnet-4-6
-{{- else if .Values.vertex.enabled -}}
-anthropic-vertex/claude-sonnet-4-6
-{{- else -}}
-local/{{ .Values.model.id }}
-{{- end }}
-{{- end }}
-
-{{/*
-Gateway token — use provided or generate a stable value.
-Uses derivePassword to produce a deterministic value per release so that
-multiple invocations within a single render return the same string.
-On upgrade, existing secrets are looked up first to avoid regeneration.
-*/}}
-{{- define "openclaw.gatewayToken" -}}
-{{- if .Values.secrets.gatewayToken -}}
-{{ .Values.secrets.gatewayToken }}
-{{- else -}}
-{{- $existing := lookup "v1" "Secret" .Release.Namespace "openclaw-secrets" -}}
-{{- if and $existing $existing.data (index $existing.data "OPENCLAW_GATEWAY_TOKEN") -}}
-{{ index $existing.data "OPENCLAW_GATEWAY_TOKEN" | b64dec }}
-{{- else -}}
-{{ randAlphaNum 32 | b64enc }}
-{{- end }}
-{{- end }}
-{{- end }}
-
-{{/*
-OAuth client secret — use provided or generate a stable value.
-Looked up from the existing secret on upgrade to stay consistent.
-*/}}
-{{- define "openclaw.oauthClientSecret" -}}
-{{- if .Values.secrets.oauthClientSecret -}}
-{{ .Values.secrets.oauthClientSecret }}
-{{- else -}}
-{{- $existing := lookup "v1" "Secret" .Release.Namespace "openclaw-oauth-config" -}}
-{{- if and $existing $existing.data (index $existing.data "client-secret") -}}
-{{ index $existing.data "client-secret" | b64dec }}
-{{- else -}}
-{{ randAlphaNum 32 }}
-{{- end }}
-{{- end }}
-{{- end }}
-
-{{/*
-OAuth cookie secret — use provided or generate a stable value.
-The oauth-proxy reads the mounted file as raw bytes and uses them directly
-as the AES key, so the value must be exactly 16, 24, or 32 bytes.
+Create the OAuth cookie secret
 */}}
 {{- define "openclaw.oauthCookieSecret" -}}
-{{- if .Values.secrets.oauthCookieSecret -}}
-{{ .Values.secrets.oauthCookieSecret }}
-{{- else -}}
-{{- $existing := lookup "v1" "Secret" .Release.Namespace "openclaw-oauth-config" -}}
-{{- if and $existing $existing.data (index $existing.data "cookie_secret") -}}
-{{ index $existing.data "cookie_secret" | b64dec }}
-{{- else -}}
-{{ randAlphaNum 32 }}
-{{- end }}
+{{- if .Values.oauthProxy.cookieSecret }}
+{{- .Values.oauthProxy.cookieSecret }}
+{{- else }}
+{{- randAlphaNum 32 }}
 {{- end }}
 {{- end }}
 
 {{/*
-Allowed origins for the control UI.
+Gateway Auth Token (Persistent)
 */}}
-{{- define "openclaw.allowedOrigins" -}}
-{{- if and (eq .Values.mode "openshift") (or .Values.clusterDomain .Values.deployer.domain) -}}
-["https://openclaw-{{ .Release.Namespace }}.{{ .Values.clusterDomain | default .Values.deployer.domain }}"]
-{{- else -}}
-[]
+{{- define "openclaw.gatewayToken" -}}
+{{- if and .Values.openclaw.config.gateway.auth (hasKey .Values.openclaw.config.gateway.auth "token") }}
+{{- .Values.openclaw.config.gateway.auth.token }}
+{{- else }}
+{{- randAlphaNum 32 }}
 {{- end }}
+{{- end }}
+
+{{/*
+ClawSuite image reference
+*/}}
+{{- define "openclaw.clawsuite.image" -}}
+{{- if .Values.clawsuite.image.repository }}
+{{- printf "%s:%s" .Values.clawsuite.image.repository .Values.clawsuite.image.tag }}
+{{- else }}
+{{- printf "image-registry.openshift-image-registry.svc:5000/%s/%s-clawsuite:%s" .Release.Namespace (include "openclaw.fullname" .) "latest" }}
+{{- end }}
+{{- end }}
+
+{{/*
+Check if we need to create BuildConfig
+*/}}
+{{- define "openclaw.clawsuite.needsBuild" -}}
+{{- if and .Values.clawsuite.enabled (not .Values.clawsuite.image.repository) }}
+true
+{{- else }}
+false
+{{- end }}
+{{- end }}
+
+{{/*
+OAuth secret checksum
+*/}}
+{{- define "openclaw.oauthSecretHash" -}}
+{{- include (print .Template.BasePath "/secret.yaml") . | sha256sum | trunc 8 }}
+{{- end }}
+
+{{/*
+User-defined secrets checksum (from secrets.yaml template)
+*/}}
+{{- define "openclaw.userSecretsHash" -}}
+{{- include (print .Template.BasePath "/secrets.yaml") . | sha256sum | trunc 8 }}
 {{- end }}

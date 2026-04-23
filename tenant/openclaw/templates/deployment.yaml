@@ -1,315 +1,338 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: openclaw
+  name: {{ include "openclaw.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "openclaw.labels" . | nindent 4 }}
-    kagenti.io/type: agent
-    kagenti.io/protocol: a2a
-    kagenti.io/framework: "OpenClaw"
+    {{- with .Values.podLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    checksum/config: {{ include "openclaw.configHash" . | quote }}
+    checksum/secret-oauth: {{ include "openclaw.oauthSecretHash" . | quote }}
+    checksum/secrets-user: {{ include "openclaw.userSecretsHash" . | quote }}
+    {{- with .Values.podAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    {{- toYaml .Values.strategy | nindent 4 }}
   selector:
     matchLabels:
       {{- include "openclaw.selectorLabels" . | nindent 6 }}
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         {{- include "openclaw.selectorLabels" . | nindent 8 }}
-        kagenti.io/type: agent
-        kagenti.io/protocol: a2a
-        kagenti.io/inject: {{ if .Values.a2a.enabled }}enabled{{ else }}disabled{{ end }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       annotations:
-        prometheus.io/scrape: 'true'
-        prometheus.io/port: '18789'
-        sidecar.opentelemetry.io/inject: "openclaw-sidecar"
-        kagenti.io/description: "OpenClaw AI Agent Gateway"
-        kagenti.io/outbound-ports-exclude: "443,4317,4318,18789"
-        kagenti.io/inbound-ports-exclude: "8080,8443,18789,18790"
+        checksum/config: {{ include "openclaw.configHash" . | quote }}
+        checksum/secret-oauth: {{ include "openclaw.oauthSecretHash" . | quote }}
+        checksum/secrets-user: {{ include "openclaw.userSecretsHash" . | quote }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
-      {{- if eq .Values.mode "openshift" }}
-      serviceAccountName: openclaw-oauth-proxy
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if eq .Values.mode "kubernetes" }}
+      serviceAccountName: {{ include "openclaw.serviceAccountName" . }}
       securityContext:
-        fsGroup: 1000
-      {{- end }}
+        {{- toYaml .Values.securityContext | nindent 8 }}
       initContainers:
         - name: init-config
-          image: {{ include "openclaw.initImage" . }}
-          imagePullPolicy: Always
-          {{- if eq .Values.mode "kubernetes" }}
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
+          {{- with .Values.openclaw.init.image }}
+          image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
+          imagePullPolicy: {{ .pullPolicy }}
           {{- end }}
-          resources:
-            {{- toYaml .Values.resources.initConfig | nindent 12 }}
-          command:
-            - sh
-            - -c
-            - |
-              cp /config/openclaw.json /home/node/.openclaw/openclaw.json
-              chmod 644 /home/node/.openclaw/openclaw.json
-              mkdir -p /home/node/.openclaw/workspace
-              mkdir -p /home/node/.openclaw/skills
-              mkdir -p /home/node/.openclaw/cron
-              mkdir -p /home/node/.openclaw/agents
-              mkdir -p /home/node/.openclaw/agents/shadowman/sessions
-              mkdir -p /home/node/.openclaw/agents/shadowman/agent
-              grep -o '"id": *"[^"]*"' /config/openclaw.json | sed 's/"id": *"//;s/"$//' | while read agent_id; do
-                mkdir -p "/home/node/.openclaw/agents/$agent_id/sessions"
-              done
-              if [ ! -f /home/node/.openclaw/workspace/AGENTS.md ]; then
-                cp /agents/shadowman/AGENTS.md /home/node/.openclaw/workspace/AGENTS.md 2>/dev/null || echo "Warning: shadowman AGENTS.md not found"
-                cp /agents/shadowman/agent.json /home/node/.openclaw/workspace/agent.json 2>/dev/null || echo "Warning: shadowman agent.json not found"
-              fi
-              chgrp -R 0 /home/node/.openclaw
-              chmod -R g=u /home/node/.openclaw
-              echo "Config initialized with default agent"
           volumeMounts:
-            - name: openclaw-home
-              mountPath: /home/node/.openclaw
-            - name: config-template
+            - name: config
               mountPath: /config
-            - name: shadowman-agent
-              mountPath: /agents/shadowman
-      containers:
-        {{- if eq .Values.mode "openshift" }}
-        - name: oauth-proxy
-          image: quay.io/openshift/origin-oauth-proxy:4.14
-          args:
-            - --http-address=:8443
-            - --https-address=
-            - --provider=openshift
-            - --upstream=http://localhost:18789
-            - --client-id={{ .Release.Namespace }}
-            - --client-secret-file=/etc/oauth/config/client-secret
-            - --cookie-secret-file=/etc/oauth/config/cookie_secret
-            - --cookie-expire=23h0m0s
-            - --pass-access-token
-            - --scope=user:full
-            - '--openshift-delegate-urls={"/":{"resource":"projects","verb":"list"}}'
-            - --skip-auth-regex=^/(metrics|api)
-          ports:
-            - containerPort: 8443
-              name: oauth-ui
-          volumeMounts:
-            - name: oauth-config
-              mountPath: /etc/oauth/config
-            - name: proxy-tls
-              mountPath: /etc/tls/private
-          livenessProbe:
-            httpGet:
-              path: /oauth/healthz
-              port: oauth-ui
-              scheme: HTTP
-            initialDelaySeconds: 30
-            periodSeconds: 5
-          readinessProbe:
-            httpGet:
-              path: /oauth/healthz
-              port: oauth-ui
-              scheme: HTTP
-            initialDelaySeconds: 5
-            periodSeconds: 5
-          resources:
-            {{- toYaml .Values.resources.oauthProxy | nindent 12 }}
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop:
-                - ALL
-        {{- end }}
-        - name: gateway
-          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+            - name: data
+              mountPath: /home/node/.openclaw
           command:
-            - node
-            - /app/dist/index.js
-            - gateway
-            - run
-            - --bind
-            - loopback
-            - --port
-            - '18789'
-            - --verbose
+            - /bin/sh
+          args:
+            - -c
+            - |-
+              mkdir -p /home/node/.openclaw
+              cp /config/*.json /home/node/.openclaw/
+              ls -la /home/node/.openclaw
+              while read -rd $'\0' config; do
+                echo $config:
+                sed 's/^/  /' $config
+              done < <(find /home/node/.openclaw -name *.json -print0)
+          {{- with .Values.openclaw.init.resources }}
+          resources:
+            {{- toYaml . |nindent 12 }}
+          {{- end }}
+      containers:
+        # OpenClaw Gateway Container
+        - name: openclaw
+          image: "{{ .Values.openclaw.image.repository }}:{{ .Values.openclaw.image.tag }}"
+          imagePullPolicy: {{ .Values.openclaw.image.pullPolicy }}
           ports:
             - name: gateway
-              containerPort: 18789
-              protocol: TCP
-            - name: bridge
-              containerPort: 18790
+              containerPort: {{ .Values.openclaw.port }}
               protocol: TCP
           env:
-            - name: HOME
-              value: /home/node
-            - name: OPENCLAW_CONFIG_DIR
-              value: /home/node/.openclaw
-            - name: OPENCLAW_STATE_DIR
-              value: /home/node/.openclaw
-            - name: OPENCLAW_CLI_PATH
-              value: /opt/app-root/src/openclaw.mjs
-            - name: TERM
-              value: xterm-256color
             - name: NODE_ENV
-              value: production
-            - name: NODE_OPTIONS
-              value: "--max-old-space-size=1536"
+              value: "production"
+            - name: HOME
+              value: "/home/node"
             - name: OPENCLAW_GATEWAY_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: openclaw-secrets
-                  key: OPENCLAW_GATEWAY_TOKEN
-            - name: ANTHROPIC_API_KEY
+                  name: {{ include "openclaw.fullname" . }}-oauth
+                  key: gateway-token
+            {{- with .Values.openclaw.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+            {{- if .Values.persistence.enabled }}
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+            {{- end }}
+            - name: cache
+              mountPath: /home/node/.cache
+            - name: home
+              mountPath: /home/node
+          {{- if .Values.openclaw.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: gateway
+            initialDelaySeconds: {{ .Values.openclaw.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.openclaw.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.openclaw.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.openclaw.livenessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.openclaw.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: gateway
+            initialDelaySeconds: {{ .Values.openclaw.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.openclaw.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.openclaw.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.openclaw.readinessProbe.failureThreshold }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.openclaw.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+          command:
+            - node
+          args:
+            - openclaw.mjs
+            - gateway
+            - --allow-unconfigured
+
+        # ClawSuite Sidecar Container
+        {{- if .Values.clawsuite.enabled }}
+        - name: clawsuite
+          image: "{{ include "openclaw.clawsuite.image" . }}"
+          imagePullPolicy: {{ .Values.clawsuite.image.pullPolicy }}
+          ports:
+            - name: clawsuite
+              containerPort: {{ .Values.clawsuite.port }}
+              protocol: TCP
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: CLAWDBOT_GATEWAY_URL
+              value: "ws://127.0.0.1:{{ .Values.openclaw.port }}"
+            - name: CLAWDBOT_GATEWAY_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: openclaw-secrets
-                  key: ANTHROPIC_API_KEY
-                  optional: true
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              valueFrom:
-                secretKeyRef:
-                  name: openclaw-secrets
-                  key: OTEL_EXPORTER_OTLP_ENDPOINT
-                  optional: true
-            - name: TELEGRAM_BOT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: telegram-secrets
-                  key: bot-token
-                  optional: true
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /vertex/ambient-code-key.json
-            - name: GCE_METADATA_HOST
-              value: disabled
-            - name: GOOGLE_CLOUD_PROJECT
-              valueFrom:
-                secretKeyRef:
-                  name: openclaw-secrets
-                  key: GOOGLE_CLOUD_PROJECT
-                  optional: true
-            - name: GOOGLE_CLOUD_LOCATION
-              valueFrom:
-                secretKeyRef:
-                  name: openclaw-secrets
-                  key: GOOGLE_CLOUD_LOCATION
-                  optional: true
-            - name: OTEL_SERVICE_NAME
-              value: openclaw
-            - name: OTEL_EXPORTER_OTLP_PROTOCOL
-              value: http/protobuf
-            - name: POD_NAMESPACE
+                  name: {{ include "openclaw.fullname" . }}-oauth
+                  key: gateway-token
+            {{- if .Values.clawsuite.allowedHosts }}
+            - name: CLAWSUITE_ALLOWED_HOSTS
+              value: {{ .Values.clawsuite.allowedHosts | quote }}
+            {{- end }}
+            {{- with .Values.clawsuite.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.clawsuite.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+        {{- end }}
+
+        # OpenShift OAuth Proxy Sidecar
+        - name: oauth-proxy
+          image: "{{ .Values.oauthProxy.image.repository }}:{{ .Values.oauthProxy.image.tag }}"
+          imagePullPolicy: {{ .Values.oauthProxy.image.pullPolicy }}
+          ports:
+            - name: oauth-proxy
+              containerPort: {{ .Values.oauthProxy.port }}
+              protocol: TCP
+          args:
+            - --provider=openshift
+            - --openshift-service-account={{ include "openclaw.serviceAccountName" . }}
+            - --upstream=http://localhost:{{ .Values.openclaw.port }}
+            - --http-address=
+            - --https-address=:{{ .Values.oauthProxy.port }}
+            - --tls-cert=/etc/tls/private/tls.crt
+            - --tls-key=/etc/tls/private/tls.key
+            - --openshift-ca=/etc/pki/tls/cert.pem
+            - --openshift-ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+            - --openshift-ca=/etc/ocp-injected-certs/ca-bundle.crt
+            - --cookie-secret-file=/etc/proxy/secrets/cookie-secret
+            - --cookie-expire=24h0m
+            - --cookie-refresh=1h
+            - --pass-access-token=true
+            - --pass-user-headers=true
+            - --request-logging=false
+            - '--openshift-sar={{ tpl .Values.oauthProxy.sar . }}'
+          env:
+            - name: NAMESPACE
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-            - name: K8S_SERVICE_ACCOUNT
+          volumeMounts:
+            - name: oauth-tls
+              mountPath: /etc/tls/private
+              readOnly: true
+            - name: oauth-secret
+              mountPath: /etc/proxy/secrets
+              readOnly: true
+            - mountPath: /etc/ocp-injected-certs
+              name: proxy-ca
+              readOnly: true
+          resources:
+            {{- toYaml .Values.oauthProxy.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+
+        {{- if .Values.clawsuite.enabled }}
+        # OpenShift OAuth Proxy Sidecar for ClawSuite
+        - name: clawsuite-oauth-proxy
+          image: "{{ .Values.clawsuite.oauthProxy.image.repository }}:{{ .Values.clawsuite.oauthProxy.image.tag }}"
+          imagePullPolicy: {{ .Values.clawsuite.oauthProxy.image.pullPolicy }}
+          ports:
+            - name: clawsuite-oauth
+              containerPort: {{ .Values.clawsuite.oauthProxy.port }}
+              protocol: TCP
+          args:
+            - --provider=openshift
+            - --openshift-service-account={{ include "openclaw.serviceAccountName" . }}
+            - --upstream=http://localhost:{{ .Values.clawsuite.port }}
+            - --http-address=
+            - --https-address=:{{ .Values.clawsuite.oauthProxy.port }}
+            - --tls-cert=/etc/tls/private/tls.crt
+            - --tls-key=/etc/tls/private/tls.key
+            - --openshift-ca=/etc/pki/tls/cert.pem
+            - --openshift-ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+            - --openshift-ca=/etc/ocp-injected-certs/ca-bundle.crt
+            - --cookie-secret-file=/etc/proxy/secrets/cookie-secret
+            - --cookie-expire=24h0m
+            - --cookie-refresh=1h
+            - --pass-access-token=true
+            - --pass-user-headers=true
+            - --request-logging=false
+            - '--openshift-sar={{ tpl .Values.clawsuite.oauthProxy.sar . }}'
+          env:
+            - name: NAMESPACE
               valueFrom:
                 fieldRef:
-                  fieldPath: spec.serviceAccountName
-          resources:
-            {{- toYaml .Values.resources.gateway | nindent 12 }}
-          livenessProbe:
-            exec:
-              command: ["node", "-e", "require('http').get('http://127.0.0.1:18789/', r => process.exit(r.statusCode < 400 ? 0 : 1)).on('error', () => process.exit(1))"]
-            initialDelaySeconds: 60
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            exec:
-              command: ["node", "-e", "require('http').get('http://127.0.0.1:18789/', r => process.exit(r.statusCode < 400 ? 0 : 1)).on('error', () => process.exit(1))"]
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 2
+                  fieldPath: metadata.namespace
           volumeMounts:
-            - name: openclaw-home
-              mountPath: /home/node/.openclaw
-            - name: tmp-volume
-              mountPath: /tmp
-            - name: vertex-credentials
-              mountPath: /vertex
+            - name: clawsuite-oauth-tls
+              mountPath: /etc/tls/private
               readOnly: true
-            - name: resource-report
-              mountPath: /data/reports/resource-optimizer
+            - name: oauth-secret
+              mountPath: /etc/proxy/secrets
               readOnly: true
-            - name: mlops-report
-              mountPath: /data/reports/mlops-monitor
+            - mountPath: /etc/ocp-injected-certs
+              name: proxy-ca
               readOnly: true
+          resources:
+            {{- toYaml .Values.clawsuite.oauthProxy.resources | nindent 12 }}
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
-        - name: agent-card
-          image: registry.redhat.io/ubi9:latest
-          command: ["python3", "-u", "/scripts/a2a-bridge.py"]
-          ports:
-            - name: a2a
-              containerPort: 8080
-          env:
-            - name: GATEWAY_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: openclaw-secrets
-                  key: OPENCLAW_GATEWAY_TOKEN
-            - name: GATEWAY_URL
-              value: "http://localhost:18789"
-            - name: AGENT_ID
-          volumeMounts:
-            - name: agent-card-data
-              mountPath: /srv/.well-known
-            - name: a2a-bridge-script
-              mountPath: /scripts
-          resources:
-            {{- toYaml .Values.resources.agentCard | nindent 12 }}
-          securityContext:
-            allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
-            capabilities:
-              drop:
-                - ALL
-      volumes:
-        - name: tmp-volume
-          emptyDir: {}
-        {{- if eq .Values.mode "openshift" }}
-        - name: oauth-config
-          secret:
-            secretName: openclaw-oauth-config
-        - name: proxy-tls
-          secret:
-            secretName: openclaw-proxy-tls
+            runAsNonRoot: true
         {{- end }}
-        - name: openclaw-home
+
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "openclaw.fullname" . }}-config
+        {{- if .Values.persistence.enabled }}
+        - name: data
           persistentVolumeClaim:
-            claimName: openclaw-home-pvc
-        - name: config-template
-          configMap:
-            name: openclaw-config
-        - name: vertex-credentials
+            claimName: {{ include "openclaw.fullname" . }}-data
+        {{- end }}
+        - name: workspace
+        {{- if .Values.workspace.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "openclaw.fullname" . }}-workspace
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+        - name: cache
+          emptyDir:
+            sizeLimit: {{ .Values.ephemeral.cache.sizeLimit }}
+        - name: home
+          emptyDir:
+            sizeLimit: {{ .Values.ephemeral.home.sizeLimit }}
+        - name: oauth-tls
           secret:
-            secretName: ambient-vertex
-            optional: true
-        - name: shadowman-agent
+            secretName: {{ include "openclaw.fullname" . }}-tls
+            defaultMode: 420
+        {{- if .Values.clawsuite.enabled }}
+        - name: clawsuite-oauth-tls
+          secret:
+            secretName: {{ include "openclaw.fullname" . }}-clawsuite-tls
+            defaultMode: 420
+        {{- end }}
+        - name: oauth-secret
+          secret:
+            secretName: {{ include "openclaw.fullname" . }}-oauth
+            defaultMode: 420
+        - name: proxy-ca
           configMap:
-            name: shadowman-agent
-            optional: true
-        - name: resource-report
-          configMap:
-            name: resource-report-latest
-            optional: true
-        - name: mlops-report
-          configMap:
-            name: mlops-report-latest
-            optional: true
-        - name: agent-card-data
-          configMap:
-            name: openclaw-agent-card
-        - name: a2a-bridge-script
-          configMap:
-            name: a2a-bridge
+            name: {{ include "openclaw.fullname" . }}-ocp-injected-certs
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
