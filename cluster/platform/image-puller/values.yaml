@@ -6,4 +6,4 @@ subscription:
   installPlanApproval: Automatic
   startingCSV: kubernetes-imagepuller-operator.v1.1.0
 
-images: "voice-notebook=quay.io/eformat/voice-notebook:latest;odh-workbench-jupyter-minimal-cpu-py312-rhel9=registry.redhat.io/rhoai/odh-workbench-jupyter-minimal-cpu-py312-rhel9@sha256:d99012ea47c8f60fdd6d7eddc1eccef16f0221d85038534d0f9a44b0bcf3daa3;web-terminal=quay.io/eformat/web-terminal:latest"
+images: "voice-notebook=quay.io/eformat/voice-notebook:latest;odh-workbench-jupyter-minimal-cpu-py312-rhel9=registry.redhat.io/rhoai/odh-workbench-jupyter-minimal-cpu-py312-rhel9@sha256:d99012ea47c8f60fdd6d7eddc1eccef16f0221d85038534d0f9a44b0bcf3daa3;web-terminal=quay.io/eformat/web-terminal:latest;openclaw=ghcr.io/openclaw/openclaw:2026.4.21-slim;clawsuite=quay.io/eformat/openclaw-clawsuite:2026.4.21"
