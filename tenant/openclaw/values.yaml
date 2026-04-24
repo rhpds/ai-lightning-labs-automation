@@ -21,7 +21,7 @@ openclaw:
       defaults:
         workspace: /workspace
         model:
-          primary: vllm/kimi-k2-5
+          primary: vllm/kimi-k2-6
 
     gateway:
       bind: "0.0.0.0"
@@ -35,12 +35,12 @@ openclaw:
     models:
       providers:
         vllm:
-          baseUrl: "https://maas.apps.ocp.cloud.rhai-tmm.dev/kimi-k25/kimi-k2-5/v1"
+          baseUrl: "https://maas.apps.ocp.cloud.rhai-tmm.dev/prelude-maas/kimi-k2-6/v1"
           apiKey: "${VLLM_API_KEY}"
           api: openai-completions
           models:
-            - id: kimi-k2-5
-              name: Kimi K2.5
+            - id: kimi-k2-6
+              name: Kimi K2.6
               reasoning: true
               input: ["text"]
               cost:
